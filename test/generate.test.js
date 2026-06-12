@@ -67,6 +67,7 @@ for (const theme of THEMES) {
 
     // secret word must map to real grid cells with the right letters
     if (p.secret) {
+      assert.ok(p.secret.ua, `${theme.id}: secret word missing translation`);
       const seen = new Set();
       p.secret.cells.forEach((idx, j) => {
         assert.ok(!seen.has(idx), 'secret reuses a cell');

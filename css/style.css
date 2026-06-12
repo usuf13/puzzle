@@ -304,7 +304,15 @@ main {
   color: #2e7d32;
 }
 
-.secret .sreveal { font-size: 1.5rem; margin-left: 6px; vertical-align: middle; }
+.secret .sreveal {
+  width: 44px;
+  height: 44px;
+  font-size: 2rem;
+  line-height: 44px;
+  margin-left: 8px;
+  align-self: center;
+  animation: pop .35s cubic-bezier(.2, 1.4, .4, 1);
+}
 
 /* ---------- word bank & clues ---------- */
 
@@ -342,36 +350,40 @@ main {
 
 .bank-say:hover { transform: scale(1.25); }
 
+.bank-ua {
+  border: none;
+  background: none;
+  font: inherit;
+  font-size: .8rem;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  opacity: .55;
+  transition: transform .12s, opacity .12s;
+}
+
+.bank-ua:hover { transform: scale(1.25); opacity: 1; }
+.wordbank li.ua-show .bank-ua { opacity: 1; }
+
 .wordbank .ua {
   display: none;
   font-style: italic;
-  opacity: .6;
-  font-size: .85rem;
+  color: var(--theme);
+  font-size: .88rem;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.wordbank.show-ua .ua { display: inline; }
+.wordbank li.ua-show .ua { display: inline; }
 
-.wordbank-panel h3 {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+.wordbank li.secret-row {
+  grid-column: 1 / -1;
+  background: #fffbe8;
+  border: 2px dashed #ffca28;
+  border-radius: 10px;
+  padding: 4px 8px;
 }
-
-.ua-toggle {
-  border: 2px solid var(--line);
-  background: #fff;
-  border-radius: 8px;
-  font-size: .9rem;
-  line-height: 1;
-  padding: 3px 6px;
-  cursor: pointer;
-  transition: border-color .15s, background .15s;
-}
-
-.ua-toggle.on { border-color: var(--theme); background: var(--theme-soft); }
 
 /* Listen / Translate bar for the selected word */
 .word-tools {
@@ -497,6 +509,13 @@ footer a { color: inherit; }
 .win-emoji { font-size: 3.4rem; }
 .win-card h2 { margin: 6px 0 4px; font-size: 2rem; color: var(--theme); }
 .win-card p { margin: 0 0 18px; font-weight: 600; }
+
+.win-buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
 
 .confetti { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
 

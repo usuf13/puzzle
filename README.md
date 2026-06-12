@@ -5,8 +5,14 @@ vocabulary. Look at the pictures, write the words!
 
 ## Features
 
-- **12 themes**: Fruits, Vegetables, Animals, Food, Kitchen, Home, Clothes,
-  Transport, School, My Body, Nature, Toys & Games — over 200 words in total.
+- **16 themes**: Fruits, Vegetables, Animals, Food, Kitchen, Home, Clothes,
+  Transport, School, My Body, Nature, Toys & Games, Colors, Numbers, Jobs,
+  Bugs — over 250 words in total.
+- **Pronunciation & Ukrainian** — every word can be listened to (English) and
+  translated/spoken in Ukrainian, via the bar above the grid or the buttons in
+  the word bank. Uses the browser's built-in speech, no API keys.
+- **Two picture styles** — flat Twemoji or detailed Fluent Emoji 3D,
+  switchable with the 🖼️ button.
 - **Fully regenerated every time** — each puzzle picks a random set of words
   from the theme and lays them out in a new random crossword, so your kid can
   play the same theme again and again.
@@ -46,8 +52,8 @@ connectivity, numbering and the secret word mapping.
 
 ## Credits
 
-- Pictures: [Twemoji](https://github.com/jdecked/twemoji) — open-source emoji
-  artwork, licensed [CC-BY 4.0](https://creativecommons.org/licenses/by/4.0/).
-  Images are loaded from a CDN with the device's native emoji as an offline
-  fallback.
+- Pictures: [Twemoji](https://github.com/jdecked/twemoji) (CC-BY 4.0) and
+  [Microsoft Fluent Emoji](https://github.com/microsoft/fluentui-emoji) (MIT).
+  Images are loaded from a CDN with a fallback chain
+  Fluent → Twemoji → the device's native emoji.
 - Inspired by classic picture-crossword worksheets for kids.

@@ -33,26 +33,57 @@
     dir: ACROSS,
     won: false,
     toolsPl: null,
+    secretInBank: false,
+    imgStyle: localStorage.getItem('imgStyle') === 'fluent' ? 'fluent' : 'twemoji',
   };
 
-  /* Twemoji picture for an emoji, with the native glyph as fallback. */
+  /* Two picture styles: flat Twemoji and detailed Fluent Emoji 3D.
+     Fallback chain: Fluent → Twemoji → native emoji glyph. */
+  function twemojiUrl(emoji) {
+    let cps = [...emoji].map(ch => ch.codePointAt(0));
+    // Twemoji file names drop FE0F except inside ZWJ sequences
+    if (!cps.includes(0x200d)) cps = cps.filter(cp => cp !== 0xfe0f);
+    const code = cps.map(cp => cp.toString(16)).join('-');
+    return `https://cdn.jsdelivr.net/gh/jdecked/twemoji@15.1.0/assets/svg/${code}.svg`;
+  }
+
+  function fluentUrl(emoji) {
+    const meta = typeof FLUENT !== 'undefined' ? FLUENT[emoji] : null;
+    if (!meta) return null;
+    const name = typeof meta === 'string' ? meta : meta.n;
+    const person = typeof meta === 'object' && meta.p;
+    const file = name.toLowerCase().replace(/ /g, '_');
+    const base = 'https://cdn.jsdelivr.net/gh/microsoft/fluentui-emoji@main/assets/';
+    return person
+      ? `${base}${encodeURIComponent(name)}/Default/3D/${file}_3d_default.png`
+      : `${base}${encodeURIComponent(name)}/3D/${file}_3d.png`;
+  }
+
+  function setImgSrc(img) {
+    const emoji = img.dataset.emoji;
+    const fluent = state.imgStyle === 'fluent' ? fluentUrl(emoji) : null;
+    img.dataset.stage = fluent ? 'fluent' : 'twemoji';
+    img.src = fluent || twemojiUrl(emoji);
+  }
+
   function emojiImg(emoji, cls) {
-    const code = [...emoji]
-      .map(ch => ch.codePointAt(0))
-      .filter(cp => cp !== 0xfe0f)
-      .map(cp => cp.toString(16))
-      .join('-');
     const img = document.createElement('img');
-    img.className = cls;
+    img.className = cls + ' eimg';
+    img.dataset.emoji = emoji;
     img.alt = '';
     img.draggable = false;
-    img.src = `https://cdn.jsdelivr.net/gh/jdecked/twemoji@15.1.0/assets/svg/${code}.svg`;
     img.addEventListener('error', () => {
-      const span = document.createElement('span');
-      span.className = cls;
-      span.textContent = emoji;
-      img.replaceWith(span);
+      if (img.dataset.stage === 'fluent') {
+        img.dataset.stage = 'twemoji';
+        img.src = twemojiUrl(emoji);
+      } else {
+        const span = document.createElement('span');
+        span.className = cls;
+        span.textContent = emoji;
+        img.replaceWith(span);
+      }
     });
+    setImgSrc(img);
     return img;
   }
 
@@ -167,28 +198,49 @@
     });
   }
 
+  function bankRow(entry, isSecret) {
+    const word = entry.word.toLowerCase();
+    const li = document.createElement('li');
+    li.dataset.word = entry.word;
+    if (isSecret) li.classList.add('secret-row');
+    const say = document.createElement('button');
+    say.className = 'bank-say';
+    say.type = 'button';
+    say.textContent = '🔊';
+    say.title = `Listen: ${word}`;
+    say.addEventListener('click', () => speak(word, 'en-US'));
+    const w = document.createElement('span');
+    w.className = 'w';
+    w.textContent = (isSecret ? '🔎 ' : '') + word;
+    const flag = document.createElement('button');
+    flag.className = 'bank-ua';
+    flag.type = 'button';
+    flag.textContent = '🇺🇦';
+    flag.title = `Ukrainian: ${word}`;
+    // only one translation is visible at a time
+    flag.addEventListener('click', () => {
+      const wasOpen = li.classList.contains('ua-show');
+      els.wordbank.querySelectorAll('li.ua-show')
+        .forEach(row => row.classList.remove('ua-show'));
+      if (!wasOpen) {
+        li.classList.add('ua-show');
+        speak(entry.ua, 'uk-UA');
+      }
+    });
+    const ua = document.createElement('span');
+    ua.className = 'ua';
+    ua.textContent = entry.ua;
+    li.append(say, w, flag, ua);
+    return li;
+  }
+
   function renderWordbank() {
     els.wordbank.innerHTML = '';
+    state.secretInBank = false;
     const placements = state.puzzle.placements.slice()
       .sort((a, b) => a.word.localeCompare(b.word));
     for (const pl of placements) {
-      const word = pl.word.toLowerCase();
-      const li = document.createElement('li');
-      li.dataset.word = pl.word;
-      const say = document.createElement('button');
-      say.className = 'bank-say';
-      say.type = 'button';
-      say.textContent = '🔊';
-      say.title = `Listen: ${word}`;
-      say.addEventListener('click', () => speak(word, 'en-US'));
-      const w = document.createElement('span');
-      w.className = 'w';
-      w.textContent = word;
-      const ua = document.createElement('span');
-      ua.className = 'ua';
-      ua.textContent = pl.ua;
-      li.append(say, w, ua);
-      els.wordbank.appendChild(li);
+      els.wordbank.appendChild(bankRow(pl, false));
     }
   }
 
@@ -365,6 +417,11 @@
     } else if (!allRight && old) {
       old.remove();
     }
+    // once found, the secret word joins the word bank for listen/translate
+    if (allRight && !state.secretInBank) {
+      state.secretInBank = true;
+      els.wordbank.appendChild(bankRow(p.secret, true));
+    }
   }
 
   function wordSolved(pl) {
@@ -464,9 +521,22 @@
     speak(pl.ua, 'uk-UA');
   });
 
-  document.getElementById('btnBankUa').addEventListener('click', e => {
-    els.wordbank.classList.toggle('show-ua');
-    e.currentTarget.classList.toggle('on');
+  function updateStyleButton() {
+    els.btnStyle.textContent =
+      state.imgStyle === 'fluent' ? '🖼️ Pictures: 3D' : '🖼️ Pictures: Classic';
+  }
+
+  els.btnStyle = document.getElementById('btnStyle');
+  els.btnStyle.addEventListener('click', () => {
+    state.imgStyle = state.imgStyle === 'fluent' ? 'twemoji' : 'fluent';
+    localStorage.setItem('imgStyle', state.imgStyle);
+    updateStyleButton();
+    document.querySelectorAll('img.eimg').forEach(setImgSrc);
+  });
+  updateStyleButton();
+
+  document.getElementById('btnClose').addEventListener('click', () => {
+    els.overlay.classList.add('hidden');
   });
 
   document.getElementById('btnNew').addEventListener('click', newPuzzle);

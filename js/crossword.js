@@ -150,7 +150,7 @@
       }
       if (ok) {
         picked.forEach((idx, i) => { cells[idx].secretIndex = i; });
-        return { word, emoji: entry.e, cells: picked };
+        return { word, emoji: entry.e, ua: entry.u, cells: picked };
       }
     }
     return null;

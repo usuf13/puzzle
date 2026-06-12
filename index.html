@@ -26,6 +26,7 @@
         <button id="btnNew" class="btn btn-primary">🔄 New puzzle</button>
         <button id="btnCheck" class="btn">✅ Check</button>
         <button id="btnHint" class="btn">💡 Hint</button>
+        <button id="btnStyle" class="btn">🖼️ Pictures: Classic</button>
         <button id="btnPrint" class="btn">🖨️ Print</button>
       </div>
     </div>
@@ -49,9 +50,7 @@
 
       <aside class="side">
         <section class="panel wordbank-panel">
-          <h3>📝 Word bank
-            <button id="btnBankUa" class="ua-toggle" title="Show Ukrainian translations">🇺🇦</button>
-          </h3>
+          <h3>📝 Word bank</h3>
           <ul id="wordbank" class="wordbank"></ul>
         </section>
       </aside>
@@ -60,7 +59,8 @@
 
   <footer>
     Pictures by <a href="https://github.com/jdecked/twemoji" target="_blank" rel="noopener">Twemoji</a>
-    (CC-BY 4.0) · Made with ❤️ for little learners
+    (CC-BY 4.0) and <a href="https://github.com/microsoft/fluentui-emoji" target="_blank" rel="noopener">Fluent Emoji</a>
+    (MIT) · Made with ❤️ for little learners
   </footer>
 
   <div id="overlay" class="overlay hidden">
@@ -69,11 +69,15 @@
       <div class="win-emoji">🎉</div>
       <h2>Great job!</h2>
       <p id="winText">You solved the whole crossword!</p>
-      <button id="btnAgain" class="btn btn-primary">Play again</button>
+      <div class="win-buttons">
+        <button id="btnClose" class="btn">👀 Look at my puzzle</button>
+        <button id="btnAgain" class="btn btn-primary">🔄 Play again</button>
+      </div>
     </div>
   </div>
 
   <script src="js/data.js"></script>
+  <script src="js/fluent.js"></script>
   <script src="js/crossword.js"></script>
   <script src="js/app.js"></script>
 </body>
