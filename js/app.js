@@ -12,7 +12,8 @@
     grid: document.getElementById('grid'),
     secret: document.getElementById('secret'),
     wordbank: document.getElementById('wordbank'),
-    extraClues: document.getElementById('extraClues'),
+    cluesTop: document.getElementById('cluesTop'),
+    cluesBottom: document.getElementById('cluesBottom'),
     overlay: document.getElementById('overlay'),
     confetti: document.getElementById('confetti'),
     winText: document.getElementById('winText'),
@@ -88,29 +89,10 @@
     els.grid.style.setProperty('--cols', p.width);
     state.inputs = new Array(p.cells.length).fill(null);
 
-    const byPic = new Map(
-      p.placements.filter(pl => pl.picIdx != null).map(pl => [pl.picIdx, pl]));
-
     p.cells.forEach((cell, idx) => {
       const div = document.createElement('div');
       if (!cell.letter) {
-        if (cell.pic) {
-          const pl = byPic.get(idx);
-          div.className = 'cell pic';
-          div.title = 'Click to jump to this word';
-          const num = document.createElement('span');
-          num.className = 'pic-num';
-          num.textContent = cell.pic.number;
-          div.append(emojiImg(cell.pic.emoji, 'pic-img'), num);
-          div.addEventListener('click', () => selectCell(pl.cells[0], pl.dir));
-          pl.picEl = div;
-        } else if (cell.decor) {
-          div.className = 'cell decor';
-          div.style.setProperty('--rot', (Math.random() * 26 - 13).toFixed(0) + 'deg');
-          div.appendChild(emojiImg(cell.decor, 'decor-img'));
-        } else {
-          div.className = 'cell block';
-        }
+        div.className = 'cell block';
         els.grid.appendChild(div);
         return;
       }
@@ -148,23 +130,25 @@
     }
   }
 
-  /* Clues whose picture did not fit next to the word in the grid
-     (rare) are listed in a strip under the grid instead. */
-  function renderExtraClues() {
-    const leftovers = state.puzzle.placements.filter(pl => pl.picIdx == null);
-    els.extraClues.innerHTML = '';
-    els.extraClues.hidden = leftovers.length === 0;
-    for (const pl of leftovers) {
+  /* Numbered picture cards in two rows framing the grid —
+     the number connects the picture to its word in the grid. */
+  function renderClueStrips() {
+    els.cluesTop.innerHTML = '';
+    els.cluesBottom.innerHTML = '';
+    const placements = state.puzzle.placements;
+    placements.forEach((pl, i) => {
       const li = document.createElement('li');
-      const num = document.createElement('span');
-      num.className = 'clue-num';
-      num.textContent = pl.number + (pl.dir === ACROSS ? ' →' : ' ↓');
-      li.append(num, emojiImg(pl.emoji, 'clue-img'));
+      li.className = 'pclue';
       li.title = 'Click to jump to this word';
+      const num = document.createElement('span');
+      num.className = 'pnum';
+      num.textContent = pl.number + (pl.dir === ACROSS ? ' →' : ' ↓');
+      li.append(emojiImg(pl.emoji, 'pclue-img'), num);
       li.addEventListener('click', () => selectCell(pl.cells[0], pl.dir));
-      els.extraClues.appendChild(li);
+      (i < Math.ceil(placements.length / 2) ? els.cluesTop : els.cluesBottom)
+        .appendChild(li);
       pl.clueEl = li;
-    }
+    });
   }
 
   function renderWordbank() {
@@ -233,8 +217,7 @@
       cellEl.classList.toggle('focus', idx === state.activeIdx);
     });
     for (const placement of state.puzzle.placements) {
-      const el = placement.picEl || placement.clueEl;
-      if (el) el.classList.toggle('active', placement === pl);
+      placement.clueEl.classList.toggle('active', placement === pl);
     }
   }
 
@@ -352,8 +335,7 @@
       li.classList.toggle('done', solved.has(li.dataset.word));
     });
     for (const pl of state.puzzle.placements) {
-      const el = pl.picEl || pl.clueEl;
-      if (el) el.classList.toggle('done', solved.has(pl.word));
+      pl.clueEl.classList.toggle('done', solved.has(pl.word));
     }
   }
 
@@ -420,7 +402,7 @@
     els.overlay.classList.add('hidden');
     applyThemeColor();
     renderGrid();
-    renderExtraClues();
+    renderClueStrips();
     renderWordbank();
     renderSecret();
     updateHighlights();
