@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Picture Crossword — Learn English Words</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧩</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <header class="hero">
+    <h1>Picture <span>Crossword</span></h1>
+    <p class="tagline">Look at the pictures. Write the words!</p>
+  </header>
+
+  <nav class="themes" id="themes" aria-label="Choose a theme"></nav>
+
+  <main>
+    <div class="toolbar">
+      <h2 id="themeTitle"></h2>
+      <div class="buttons">
+        <button id="btnNew" class="btn btn-primary">🔄 New puzzle</button>
+        <button id="btnCheck" class="btn">✅ Check</button>
+        <button id="btnHint" class="btn">💡 Hint</button>
+        <button id="btnPrint" class="btn">🖨️ Print</button>
+      </div>
+    </div>
+
+    <div class="layout">
+      <section class="panel grid-panel">
+        <div class="grid-scroll">
+          <div id="grid" class="grid" role="grid"></div>
+        </div>
+        <div id="secret" class="secret"></div>
+      </section>
+
+      <aside class="side">
+        <section class="panel wordbank-panel">
+          <h3>📝 Word bank</h3>
+          <ul id="wordbank" class="wordbank"></ul>
+        </section>
+        <section class="panel clues-panel">
+          <div class="clue-group">
+            <h3>➡️ Across</h3>
+            <ul id="cluesAcross" class="clues"></ul>
+          </div>
+          <div class="clue-group">
+            <h3>⬇️ Down</h3>
+            <ul id="cluesDown" class="clues"></ul>
+          </div>
+        </section>
+      </aside>
+    </div>
+  </main>
+
+  <footer>
+    Pictures by <a href="https://openmoji.org" target="_blank" rel="noopener">OpenMoji</a>
+    (CC BY-SA 4.0) · Made with ❤️ for little learners
+  </footer>
+
+  <div id="overlay" class="overlay hidden">
+    <div class="confetti" id="confetti"></div>
+    <div class="win-card">
+      <div class="win-emoji">🎉</div>
+      <h2>Great job!</h2>
+      <p id="winText">You solved the whole crossword!</p>
+      <button id="btnAgain" class="btn btn-primary">Play again</button>
+    </div>
+  </div>
+
+  <script src="js/data.js"></script>
+  <script src="js/crossword.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
