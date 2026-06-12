@@ -12,8 +12,7 @@
     grid: document.getElementById('grid'),
     secret: document.getElementById('secret'),
     wordbank: document.getElementById('wordbank'),
-    cluesAcross: document.getElementById('cluesAcross'),
-    cluesDown: document.getElementById('cluesDown'),
+    extraClues: document.getElementById('extraClues'),
     overlay: document.getElementById('overlay'),
     confetti: document.getElementById('confetti'),
     winText: document.getElementById('winText'),
@@ -29,18 +28,18 @@
     won: false,
   };
 
-  /* OpenMoji picture for an emoji, with the native glyph as fallback. */
+  /* Twemoji picture for an emoji, with the native glyph as fallback. */
   function emojiImg(emoji, cls) {
     const code = [...emoji]
       .map(ch => ch.codePointAt(0))
       .filter(cp => cp !== 0xfe0f)
-      .map(cp => cp.toString(16).toUpperCase().padStart(4, '0'))
+      .map(cp => cp.toString(16))
       .join('-');
     const img = document.createElement('img');
     img.className = cls;
     img.alt = '';
     img.draggable = false;
-    img.src = `https://cdn.jsdelivr.net/gh/hfg-gmuend/openmoji@15.0.0/color/svg/${code}.svg`;
+    img.src = `https://cdn.jsdelivr.net/gh/jdecked/twemoji@15.1.0/assets/svg/${code}.svg`;
     img.addEventListener('error', () => {
       const span = document.createElement('span');
       span.className = cls;
@@ -89,10 +88,29 @@
     els.grid.style.setProperty('--cols', p.width);
     state.inputs = new Array(p.cells.length).fill(null);
 
+    const byPic = new Map(
+      p.placements.filter(pl => pl.picIdx != null).map(pl => [pl.picIdx, pl]));
+
     p.cells.forEach((cell, idx) => {
       const div = document.createElement('div');
       if (!cell.letter) {
-        div.className = 'cell block';
+        if (cell.pic) {
+          const pl = byPic.get(idx);
+          div.className = 'cell pic';
+          div.title = 'Click to jump to this word';
+          const num = document.createElement('span');
+          num.className = 'pic-num';
+          num.textContent = cell.pic.number;
+          div.append(emojiImg(cell.pic.emoji, 'pic-img'), num);
+          div.addEventListener('click', () => selectCell(pl.cells[0], pl.dir));
+          pl.picEl = div;
+        } else if (cell.decor) {
+          div.className = 'cell decor';
+          div.style.setProperty('--rot', (Math.random() * 26 - 13).toFixed(0) + 'deg');
+          div.appendChild(emojiImg(cell.decor, 'decor-img'));
+        } else {
+          div.className = 'cell block';
+        }
         els.grid.appendChild(div);
         return;
       }
@@ -130,20 +148,21 @@
     }
   }
 
-  function renderClues() {
-    const p = state.puzzle;
-    els.cluesAcross.innerHTML = '';
-    els.cluesDown.innerHTML = '';
-    for (const pl of p.placements) {
+  /* Clues whose picture did not fit next to the word in the grid
+     (rare) are listed in a strip under the grid instead. */
+  function renderExtraClues() {
+    const leftovers = state.puzzle.placements.filter(pl => pl.picIdx == null);
+    els.extraClues.innerHTML = '';
+    els.extraClues.hidden = leftovers.length === 0;
+    for (const pl of leftovers) {
       const li = document.createElement('li');
-      li.dataset.word = pl.word;
       const num = document.createElement('span');
       num.className = 'clue-num';
-      num.textContent = pl.number;
+      num.textContent = pl.number + (pl.dir === ACROSS ? ' →' : ' ↓');
       li.append(num, emojiImg(pl.emoji, 'clue-img'));
       li.title = 'Click to jump to this word';
       li.addEventListener('click', () => selectCell(pl.cells[0], pl.dir));
-      (pl.dir === ACROSS ? els.cluesAcross : els.cluesDown).appendChild(li);
+      els.extraClues.appendChild(li);
       pl.clueEl = li;
     }
   }
@@ -214,7 +233,8 @@
       cellEl.classList.toggle('focus', idx === state.activeIdx);
     });
     for (const placement of state.puzzle.placements) {
-      placement.clueEl.classList.toggle('active', placement === pl);
+      const el = placement.picEl || placement.clueEl;
+      if (el) el.classList.toggle('active', placement === pl);
     }
   }
 
@@ -332,7 +352,8 @@
       li.classList.toggle('done', solved.has(li.dataset.word));
     });
     for (const pl of state.puzzle.placements) {
-      pl.clueEl.classList.toggle('done', solved.has(pl.word));
+      const el = pl.picEl || pl.clueEl;
+      if (el) el.classList.toggle('done', solved.has(pl.word));
     }
   }
 
@@ -399,7 +420,7 @@
     els.overlay.classList.add('hidden');
     applyThemeColor();
     renderGrid();
-    renderClues();
+    renderExtraClues();
     renderWordbank();
     renderSecret();
     updateHighlights();

@@ -10,7 +10,8 @@ vocabulary. Look at the pictures, write the words!
 - **Fully regenerated every time** — each puzzle picks a random set of words
   from the theme and lays them out in a new random crossword, so your kid can
   play the same theme again and again.
-- **Pictures as clues** — every clue is an image (OpenMoji artwork), so the
+- **Pictures as clues** — every clue is an image (Twemoji artwork) placed
+  directly in the grid next to its word, just like on paper worksheets, so the
   child has to recall the English word from the picture.
 - **Word bank** — an alphabetical word list to help, just like classic
   worksheets. Solved words get crossed out automatically.
@@ -45,8 +46,8 @@ connectivity, numbering and the secret word mapping.
 
 ## Credits
 
-- Pictures: [OpenMoji](https://openmoji.org) — the open-source emoji and icon
-  project, licensed [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/).
+- Pictures: [Twemoji](https://github.com/jdecked/twemoji) — open-source emoji
+  artwork, licensed [CC-BY 4.0](https://creativecommons.org/licenses/by/4.0/).
   Images are loaded from a CDN with the device's native emoji as an offline
   fallback.
 - Inspired by classic picture-crossword worksheets for kids.

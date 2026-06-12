@@ -8,7 +8,7 @@
 
   const ACROSS = 0;
   const DOWN = 1;
-  const MAX_SPAN = 15; // soft cap on grid width/height
+  const MAX_SPAN = 13; // soft cap on grid width/height (before the picture ring)
 
   function shuffle(arr) {
     for (let i = arr.length - 1; i > 0; i--) {
@@ -150,21 +150,87 @@
     return null;
   }
 
+  /* Puts each clue picture into an empty cell touching its word —
+     the cell just before the word is guaranteed empty, the ring of
+     padding around the grid guarantees it is in bounds. */
+  function assignClueImages(placements, cells, width, height) {
+    const used = new Set();
+    const isFree = (r, c) =>
+      r >= 0 && c >= 0 && r < height && c < width &&
+      !cells[r * width + c].letter && !used.has(r * width + c);
+    for (const p of placements) {
+      const len = p.word.length;
+      const cands = p.dir === ACROSS
+        ? [[p.row, p.col - 1], [p.row, p.col + len],
+           [p.row - 1, p.col - 1], [p.row + 1, p.col - 1]]
+        : [[p.row - 1, p.col], [p.row + len, p.col],
+           [p.row - 1, p.col - 1], [p.row - 1, p.col + 1]];
+      const spot = cands.find(([r, c]) => isFree(r, c));
+      if (spot) {
+        const idx = spot[0] * width + spot[1];
+        used.add(idx);
+        cells[idx].pic = { emoji: p.emoji, number: p.number, dir: p.dir };
+        p.picIdx = idx;
+      } else {
+        p.picIdx = null;
+      }
+    }
+  }
+
+  /* Sprinkles a few decorative theme pictures into empty corners,
+     away from letters and clue pictures so they can't be mistaken
+     for clues. */
+  function assignDecorations(entries, placements, cells, width, height, count) {
+    const placed = new Set(placements.map(p => p.word));
+    let pool = entries.filter(e => !placed.has(e.w.toUpperCase()));
+    if (pool.length === 0) pool = entries;
+    const free = [];
+    cells.forEach((cell, idx) => {
+      if (cell.letter || cell.pic) return;
+      const r = Math.floor(idx / width);
+      const c = idx % width;
+      for (let dr = -1; dr <= 1; dr++) {
+        for (let dc = -1; dc <= 1; dc++) {
+          const rr = r + dr, cc = c + dc;
+          if (rr < 0 || cc < 0 || rr >= height || cc >= width) continue;
+          const n = cells[rr * width + cc];
+          if (n.letter || n.pic) return;
+        }
+      }
+      free.push(idx);
+    });
+    shuffle(free);
+    const picked = [];
+    for (const idx of free) {
+      if (picked.length >= count) break;
+      const r = Math.floor(idx / width);
+      const c = idx % width;
+      const tooClose = picked.some(p2 =>
+        Math.abs(Math.floor(p2 / width) - r) < 2 && Math.abs(p2 % width - c) < 2);
+      if (tooClose) continue;
+      picked.push(idx);
+      cells[idx].decor = pool[Math.floor(Math.random() * pool.length)].e;
+    }
+  }
+
   function finalize(layout, entries) {
     const { grid, placements } = layout;
     const b = bounds(grid);
-    const width = b.maxC - b.minC + 1;
-    const height = b.maxR - b.minR + 1;
+    // one empty ring around the letters leaves room for clue pictures
+    const offR = b.minR - 1;
+    const offC = b.minC - 1;
+    const width = b.maxC - b.minC + 3;
+    const height = b.maxR - b.minR + 3;
     const cells = Array.from({ length: width * height }, () => ({ letter: null }));
     for (const [k, letter] of grid) {
       const [r, c] = k.split(',').map(Number);
-      cells[(r - b.minR) * width + (c - b.minC)].letter = letter;
+      cells[(r - offR) * width + (c - offC)].letter = letter;
     }
 
     const starts = new Map();
     for (const p of placements) {
-      p.row -= b.minR;
-      p.col -= b.minC;
+      p.row -= offR;
+      p.col -= offC;
       const dr = p.dir === DOWN ? 1 : 0;
       const dc = p.dir === ACROSS ? 1 : 0;
       p.cells = Array.from({ length: p.word.length },
@@ -187,6 +253,8 @@
     }
 
     placements.sort((a, b2) => a.number - b2.number || a.dir - b2.dir);
+    assignClueImages(placements, cells, width, height);
+    assignDecorations(entries, placements, cells, width, height, 4);
     const secret = pickSecret(entries, placements, cells, width);
     return { width, height, cells, placements, secret };
   }

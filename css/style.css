@@ -57,11 +57,12 @@ body {
 
 .themes {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
   padding: 14px 16px;
-  overflow-x: auto;
-  justify-content: safe center;
-  scrollbar-width: thin;
+  justify-content: center;
+  max-width: 1080px;
+  margin: 0 auto;
 }
 
 .chip {
@@ -185,6 +186,73 @@ main {
 
 .cell.block { visibility: hidden; }
 
+/* clue picture sitting next to its word, like on paper worksheets */
+.cell.pic {
+  cursor: pointer;
+  z-index: 2;
+}
+
+.pic-img {
+  position: absolute;
+  inset: -14%;
+  width: 128%;
+  height: 128%;
+  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, .18));
+  transition: transform .12s;
+}
+
+span.pic-img {
+  font-size: calc(var(--cell) * .92);
+  line-height: var(--cell);
+  text-align: center;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.cell.pic:hover .pic-img { transform: scale(1.12); }
+.cell.pic.done { opacity: .35; }
+.cell.pic.active .pic-img { transform: scale(1.15); }
+
+.pic-num {
+  position: absolute;
+  top: -6px;
+  left: -6px;
+  width: calc(var(--cell) * .42);
+  height: calc(var(--cell) * .42);
+  border-radius: 50%;
+  background: var(--theme);
+  color: #fff;
+  font-size: calc(var(--cell) * .27);
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .3);
+  z-index: 3;
+}
+
+/* decorative theme pictures in the empty corners */
+.cell.decor { pointer-events: none; }
+
+.decor-img {
+  position: absolute;
+  inset: -20%;
+  width: 140%;
+  height: 140%;
+  transform: rotate(var(--rot, 0deg));
+  opacity: .9;
+}
+
+span.decor-img {
+  font-size: calc(var(--cell) * 1.1);
+  line-height: var(--cell);
+  text-align: center;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
 .cell input {
   width: 100%;
   height: 100%;
@@ -234,10 +302,10 @@ main {
 
 .cell .secret-badge {
   position: absolute;
-  bottom: -4px;
-  right: -4px;
-  width: calc(var(--cell) * .42);
-  height: calc(var(--cell) * .42);
+  bottom: 2px;
+  right: 2px;
+  width: calc(var(--cell) * .36);
+  height: calc(var(--cell) * .36);
   border-radius: 50%;
   background: #ffca28;
   color: #5d4000;
@@ -333,8 +401,7 @@ main {
 
 .wordbank li.done { text-decoration: line-through; opacity: .45; }
 
-.clues-panel { display: grid; gap: 14px; }
-
+/* fallback strip for clue pictures that did not fit inside the grid */
 .clues {
   margin: 0;
   padding: 0;
@@ -342,7 +409,10 @@ main {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+  justify-content: center;
 }
+
+.clues[hidden] { display: none; }
 
 .clues li {
   display: flex;
@@ -369,8 +439,8 @@ main {
   transition: color .3s;
 }
 
-.clue-img { width: 36px; height: 36px; display: block; }
-span.clue-img { font-size: 28px; line-height: 36px; text-align: center; }
+.clue-img { width: 44px; height: 44px; display: block; }
+span.clue-img { font-size: 36px; line-height: 44px; text-align: center; }
 
 /* ---------- footer ---------- */
 
@@ -435,6 +505,13 @@ footer a { color: inherit; }
 @media (max-width: 880px) {
   .layout { grid-template-columns: 1fr; }
   .side { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 600px) {
+  .hero { padding-top: 16px; }
+  .themes { padding: 10px 10px; gap: 6px; }
+  .chip { font-size: .82rem; padding: 5px 10px; }
+  .panel { padding: 12px; }
 }
 
 /* ---------- print (worksheet mode) ---------- */
