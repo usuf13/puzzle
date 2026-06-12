@@ -16,6 +16,15 @@ function renderAscii(p) {
   return out;
 }
 
+// every word must have an emoji and a Ukrainian translation
+for (const theme of THEMES) {
+  for (const entry of theme.words) {
+    assert.ok(entry.e, `${theme.id}/${entry.w}: missing emoji`);
+    assert.ok(entry.u && entry.u.length > 0, `${theme.id}/${entry.w}: missing translation`);
+    assert.match(entry.w, /^[a-z]+$/, `${theme.id}/${entry.w}: word must be a-z only`);
+  }
+}
+
 let total = 0;
 for (const theme of THEMES) {
   for (let i = 0; i < 25; i++) {
@@ -36,6 +45,13 @@ for (const theme of THEMES) {
       });
       assert.ok(pl.number >= 1, `${theme.id}: missing clue number for ${pl.word}`);
     }
+
+    // clue numbers are unique — one number always means one word
+    const nums = p.placements.map(pl => pl.number);
+    assert.strictEqual(new Set(nums).size, nums.length,
+      `${theme.id}: duplicate clue numbers`);
+    assert.ok(p.placements.every(pl => pl.ua),
+      `${theme.id}: placement missing translation`);
 
     // every word after the first must cross at least one other word
     const counts = new Map();

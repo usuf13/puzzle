@@ -14,6 +14,11 @@
     wordbank: document.getElementById('wordbank'),
     cluesTop: document.getElementById('cluesTop'),
     cluesBottom: document.getElementById('cluesBottom'),
+    toolsHint: document.getElementById('toolsHint'),
+    toolsPic: document.getElementById('toolsPic'),
+    btnSay: document.getElementById('btnSay'),
+    btnUa: document.getElementById('btnUa'),
+    uaWord: document.getElementById('uaWord'),
     overlay: document.getElementById('overlay'),
     confetti: document.getElementById('confetti'),
     winText: document.getElementById('winText'),
@@ -27,6 +32,7 @@
     activeIdx: null,
     dir: ACROSS,
     won: false,
+    toolsPl: null,
   };
 
   /* Twemoji picture for an emoji, with the native glyph as fallback. */
@@ -52,6 +58,16 @@
 
   function currentTheme() {
     return THEMES.find(t => t.id === state.themeId);
+  }
+
+  /* Built-in browser text-to-speech — works offline, no API keys. */
+  function speak(text, lang) {
+    if (!('speechSynthesis' in window)) return;
+    speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = lang;
+    utterance.rate = 0.85;
+    speechSynthesis.speak(utterance);
   }
 
   /* ---------- rendering ---------- */
@@ -153,13 +169,25 @@
 
   function renderWordbank() {
     els.wordbank.innerHTML = '';
-    const words = state.puzzle.placements
-      .map(pl => pl.word.toLowerCase())
-      .sort();
-    for (const word of words) {
+    const placements = state.puzzle.placements.slice()
+      .sort((a, b) => a.word.localeCompare(b.word));
+    for (const pl of placements) {
+      const word = pl.word.toLowerCase();
       const li = document.createElement('li');
-      li.textContent = word;
-      li.dataset.word = word.toUpperCase();
+      li.dataset.word = pl.word;
+      const say = document.createElement('button');
+      say.className = 'bank-say';
+      say.type = 'button';
+      say.textContent = '🔊';
+      say.title = `Listen: ${word}`;
+      say.addEventListener('click', () => speak(word, 'en-US'));
+      const w = document.createElement('span');
+      w.className = 'w';
+      w.textContent = word;
+      const ua = document.createElement('span');
+      ua.className = 'ua';
+      ua.textContent = pl.ua;
+      li.append(say, w, ua);
       els.wordbank.appendChild(li);
     }
   }
@@ -219,6 +247,21 @@
     for (const placement of state.puzzle.placements) {
       placement.clueEl.classList.toggle('active', placement === pl);
     }
+    updateTools(pl);
+  }
+
+  /* The Listen / Translate bar follows the selected word. */
+  function updateTools(pl) {
+    if (pl !== state.toolsPl) {
+      state.toolsPl = pl;
+      els.uaWord.hidden = true;
+      els.uaWord.textContent = '';
+    }
+    els.btnSay.disabled = !pl;
+    els.btnUa.disabled = !pl;
+    els.toolsHint.hidden = !!pl;
+    els.toolsPic.innerHTML = '';
+    if (pl) els.toolsPic.appendChild(emojiImg(pl.emoji, 'tools-img'));
   }
 
   /* ---------- input handling ---------- */
@@ -407,6 +450,24 @@
     renderSecret();
     updateHighlights();
   }
+
+  els.btnSay.addEventListener('click', () => {
+    const pl = activePlacement();
+    if (pl) speak(pl.word.toLowerCase(), 'en-US');
+  });
+
+  els.btnUa.addEventListener('click', () => {
+    const pl = activePlacement();
+    if (!pl) return;
+    els.uaWord.textContent = pl.ua;
+    els.uaWord.hidden = false;
+    speak(pl.ua, 'uk-UA');
+  });
+
+  document.getElementById('btnBankUa').addEventListener('click', e => {
+    els.wordbank.classList.toggle('show-ua');
+    e.currentTarget.classList.toggle('on');
+  });
 
   document.getElementById('btnNew').addEventListener('click', newPuzzle);
   document.getElementById('btnCheck').addEventListener('click', checkAnswers);

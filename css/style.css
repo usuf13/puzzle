@@ -320,19 +320,88 @@ main {
 .wordbank li {
   font-weight: 600;
   font-size: .98rem;
-  padding-left: 16px;
-  position: relative;
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+  min-width: 0;
 }
 
-.wordbank li::before {
-  content: '•';
-  position: absolute;
-  left: 2px;
+.wordbank li.done { opacity: .45; }
+.wordbank li.done .w { text-decoration: line-through; }
+
+.bank-say {
+  border: none;
+  background: none;
+  font: inherit;
+  font-size: .9rem;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  transition: transform .12s;
+}
+
+.bank-say:hover { transform: scale(1.25); }
+
+.wordbank .ua {
+  display: none;
+  font-style: italic;
+  opacity: .6;
+  font-size: .85rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.wordbank.show-ua .ua { display: inline; }
+
+.wordbank-panel h3 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.ua-toggle {
+  border: 2px solid var(--line);
+  background: #fff;
+  border-radius: 8px;
+  font-size: .9rem;
+  line-height: 1;
+  padding: 3px 6px;
+  cursor: pointer;
+  transition: border-color .15s, background .15s;
+}
+
+.ua-toggle.on { border-color: var(--theme); background: var(--theme-soft); }
+
+/* Listen / Translate bar for the selected word */
+.word-tools {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  background: var(--theme-soft);
+  border-radius: 14px;
+  padding: 8px 12px;
+  min-height: 50px;
+  transition: background .3s;
+}
+
+.tools-hint { font-weight: 600; opacity: .6; font-size: .92rem; }
+.tools-pic:empty { display: none; }
+.tools-img { width: 34px; height: 34px; display: block; }
+span.tools-img { font-size: 28px; line-height: 34px; }
+
+.btn-mini { padding: 6px 12px; font-size: .9rem; }
+.btn-mini:disabled { opacity: .45; cursor: default; transform: none; }
+
+.ua-word {
+  font-weight: 800;
+  font-size: 1.05rem;
   color: var(--theme);
   transition: color .3s;
 }
-
-.wordbank li.done { text-decoration: line-through; opacity: .45; }
 
 /* numbered picture cards framing the grid */
 .pclues {
@@ -347,8 +416,8 @@ main {
 
 .pclue {
   position: relative;
-  width: 66px;
-  height: 66px;
+  width: 74px;
+  height: 74px;
   border: 2.5px solid var(--theme-soft);
   border-radius: 16px;
   background: #fff;
@@ -364,8 +433,8 @@ main {
 .pclue.active { border-color: var(--theme); background: var(--theme-soft); }
 .pclue.done { opacity: .35; }
 
-.pclue-img { width: 46px; height: 46px; display: block; }
-span.pclue-img { font-size: 38px; line-height: 46px; text-align: center; }
+.pclue-img { width: 54px; height: 54px; display: block; }
+span.pclue-img { font-size: 44px; line-height: 54px; text-align: center; }
 
 .pclue .pnum {
   position: absolute;
@@ -460,7 +529,8 @@ footer a { color: inherit; }
 
 @media print {
   body { background: #fff; }
-  .hero .tagline, .themes, .buttons, footer, .overlay { display: none !important; }
+  .hero .tagline, .themes, .buttons, footer, .overlay,
+  .word-tools, .bank-say, .ua-toggle { display: none !important; }
   .panel { box-shadow: none; border: none; padding: 8px; }
   .layout { grid-template-columns: 1fr; gap: 8px; }
   .cell input { border-color: #999; box-shadow: none !important; background: #fff !important; color: transparent; }

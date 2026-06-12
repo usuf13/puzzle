@@ -33,6 +33,13 @@
     <div class="layout">
       <section class="panel grid-panel">
         <ul id="cluesTop" class="pclues"></ul>
+        <div id="wordTools" class="word-tools">
+          <span id="toolsHint" class="tools-hint">👆 Tap a picture or a cell to choose a word</span>
+          <span id="toolsPic" class="tools-pic"></span>
+          <button id="btnSay" class="btn btn-mini" disabled>🔊 Listen</button>
+          <button id="btnUa" class="btn btn-mini" disabled>🇺🇦 Translate</button>
+          <span id="uaWord" class="ua-word" hidden></span>
+        </div>
         <div class="grid-scroll">
           <div id="grid" class="grid" role="grid"></div>
         </div>
@@ -42,7 +49,9 @@
 
       <aside class="side">
         <section class="panel wordbank-panel">
-          <h3>📝 Word bank</h3>
+          <h3>📝 Word bank
+            <button id="btnBankUa" class="ua-toggle" title="Show Ukrainian translations">🇺🇦</button>
+          </h3>
           <ul id="wordbank" class="wordbank"></ul>
         </section>
       </aside>

@@ -89,6 +89,7 @@
   function build(pool, wordCount) {
     const grid = new Map();
     const placements = [];
+    const startKeys = new Set(); // one word per start cell => unique clue numbers
     for (const entry of pool) {
       if (placements.length >= wordCount) break;
       const word = entry.w.toUpperCase();
@@ -96,18 +97,23 @@
       if (placements.length === 0) {
         spot = { r: 0, c: 0, dir: Math.random() < 0.5 ? ACROSS : DOWN, crosses: 0 };
       } else {
-        const options = findPlacements(grid, word);
+        const options = findPlacements(grid, word)
+          .filter(o => !startKeys.has(key(o.r, o.c)));
         if (options.length === 0) continue;
         const best = Math.max(...options.map(o => o.crosses));
         const top = options.filter(o => o.crosses === best);
         spot = top[Math.floor(Math.random() * top.length)];
       }
+      startKeys.add(key(spot.r, spot.c));
       const dr = spot.dir === DOWN ? 1 : 0;
       const dc = spot.dir === ACROSS ? 1 : 0;
       for (let i = 0; i < word.length; i++) {
         grid.set(key(spot.r + dr * i, spot.c + dc * i), word[i]);
       }
-      placements.push({ word, emoji: entry.e, row: spot.r, col: spot.c, dir: spot.dir });
+      placements.push({
+        word, emoji: entry.e, ua: entry.u,
+        row: spot.r, col: spot.c, dir: spot.dir,
+      });
     }
     return { grid, placements };
   }
