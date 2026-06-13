@@ -191,7 +191,7 @@
       num.className = 'pnum';
       num.textContent = pl.number + (pl.dir === ACROSS ? ' →' : ' ↓');
       li.append(emojiImg(pl.emoji, 'pclue-img'), num);
-      li.addEventListener('click', () => selectCell(pl.cells[0], pl.dir));
+      li.addEventListener('click', () => selectWord(pl));
       (i < Math.ceil(placements.length / 2) ? els.cluesTop : els.cluesBottom)
         .appendChild(li);
       pl.clueEl = li;
@@ -283,6 +283,13 @@
     if (input && document.activeElement !== input) input.focus({ preventScroll: false });
   }
 
+  /* Start a word from its clue: land on the first empty cell so the
+     letters already filled in by crossing words are skipped. */
+  function selectWord(pl) {
+    const target = pl.cells.find(idx => !state.inputs[idx].value);
+    selectCell(target != null ? target : pl.cells[0], pl.dir);
+  }
+
   function activePlacement() {
     if (state.activeIdx == null) return null;
     return state.at[state.activeIdx][state.dir] || null;
@@ -334,15 +341,29 @@
 
   function handleInput(idx) {
     const input = state.inputs[idx];
-    const match = input.value.toUpperCase().match(/[A-Z]/g);
-    input.value = match ? match[match.length - 1] : '';
+    const prev = input.dataset.prev || '';
+    let val = input.value.toUpperCase().replace(/[^A-ZА-ЯІЇЄҐ]/gi, '');
+    if (val.length > 1) {
+      // typing over a filled cell: keep the newly typed letter,
+      // wherever the cursor inserted it relative to the old one
+      const withoutOld = prev ? val.replace(prev, '') : val;
+      val = (withoutOld || val).slice(-1);
+    }
+    val = val.replace(/[^A-Z]/g, '');
+    input.value = val;
+    input.dataset.prev = val;
     input.parentElement.classList.remove('wrong', 'right', 'revealed');
-    if (input.value) {
+    if (val) {
       const pl = activePlacement();
       if (pl) {
         const pos = pl.cells.indexOf(idx);
-        if (pos > -1 && pos < pl.cells.length - 1) {
-          selectCell(pl.cells[pos + 1], state.dir);
+        // advance to the next EMPTY cell of the word, skipping
+        // letters already filled in by crossing words
+        for (let i = pos + 1; i < pl.cells.length; i++) {
+          if (!state.inputs[pl.cells[i]].value) {
+            selectCell(pl.cells[i], state.dir);
+            break;
+          }
         }
       }
     }
@@ -357,10 +378,15 @@
       const pl = activePlacement();
       if (pl) {
         const pos = pl.cells.indexOf(idx);
+        // step back to the previous EMPTY-able cell, skipping locked-in
+        // letters from crossing words isn't desired here: backspace should
+        // still let you delete any letter, so just go one cell back
         if (pos > 0) {
           const prev = pl.cells[pos - 1];
-          state.inputs[prev].value = '';
-          state.inputs[prev].parentElement.classList.remove('wrong', 'right', 'revealed');
+          const prevInput = state.inputs[prev];
+          prevInput.value = '';
+          prevInput.dataset.prev = '';
+          prevInput.parentElement.classList.remove('wrong', 'right', 'revealed');
           selectCell(prev, state.dir);
           afterChange();
         }
@@ -487,6 +513,7 @@
     }
     const input = state.inputs[idx];
     input.value = state.puzzle.cells[idx].letter;
+    input.dataset.prev = input.value;
     input.parentElement.classList.remove('wrong', 'right');
     input.parentElement.classList.add('revealed');
     selectCell(idx, state.dir);
@@ -547,4 +574,7 @@
 
   renderThemeChips();
   newPuzzle();
+
+  // test hook for automated UI checks (harmless read access to state)
+  window.__cw = { state, selectCell, selectWord, ACROSS, DOWN };
 })();
