@@ -3,6 +3,8 @@
 A kid-friendly web app that generates picture crosswords for learning English
 vocabulary. Look at the pictures, write the words!
 
+https://usuf13.github.io/puzzle/
+
 ## Features
 
 - **16 themes**: Fruits, Vegetables, Animals, Food, Kitchen, Home, Clothes,
